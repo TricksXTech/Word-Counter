@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Word Counter</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+margin:0;
+display:flex;
+justify-content:center;
+}
+
+.container{
+width:900px;
+padding:20px;
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
+}
+
+textarea{
+width:100%;
+height:250px;
+padding:15px;
+font-size:16px;
+border-radius:10px;
+border:none;
+outline:none;
+resize:none;
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:15px;
+margin-top:20px;
+}
+
+.box{
+background:#1e293b;
+padding:15px;
+border-radius:10px;
+text-align:center;
+}
+
+.box span{
+font-size:22px;
+font-weight:bold;
+}
+
+button{
+margin-top:20px;
+padding:12px 20px;
+background:#2563eb;
+border:none;
+color:white;
+font-size:16px;
+border-radius:8px;
+cursor:pointer;
+}
+
+#grammarResult{
+margin-top:20px;
+background:#1e293b;
+padding:15px;
+border-radius:10px;
+}
+
+@media(max-width:700px){
+
+.stats{
+grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Word Counter</h1>
+
+<textarea id="text" spellcheck="true" placeholder="Start typing or paste your text..."></textarea>
+
+<div class="stats">
+
+<div class="box">
+<span id="words">0</span>
+<p>Words</p>
+</div>
+
+<div class="box">
+<span id="characters">0</span>
+<p>Characters</p>
+</div>
+
+<div class="box">
+<span id="charactersNoSpace">0</span>
+<p>No Space</p>
+</div>
+
+<div class="box">
+<span id="sentences">0</span>
+<p>Sentences</p>
+</div>
+
+<div class="box">
+<span id="paragraphs">0</span>
+<p>Paragraphs</p>
+</div>
+
+<div class="box">
+<span id="reading">0 sec</span>
+<p>Reading</p>
+</div>
+
+<div class="box">
+<span id="speaking">0 sec</span>
+<p>Speaking</p>
+</div>
+
+</div>
+
+<button onclick="checkGrammar()">Check Grammar</button>
+
+<div id="grammarResult"></div>
+
+</div>
+
+<script>
+
+const text = document.getElementById("text")
+
+const words = document.getElementById("words")
+const characters = document.getElementById("characters")
+const charactersNoSpace = document.getElementById("charactersNoSpace")
+const sentences = document.getElementById("sentences")
+const paragraphs = document.getElementById("paragraphs")
+const reading = document.getElementById("reading")
+const speaking = document.getElementById("speaking")
+
+text.addEventListener("input", updateStats)
+
+function updateStats(){
+
+let value = text.value
+
+let wordCount = value.trim().split(/\s+/).filter(w=>w.length>0).length
+let charCount = value.length
+let charNoSpace = value.replace(/\s/g,'').length
+let sentenceCount = value.split(/[.!?]+/).filter(s=>s.trim().length>0).length
+let paragraphCount = value.split(/\n+/).filter(p=>p.trim().length>0).length
+
+let readingTime = Math.ceil(wordCount/200*60)
+let speakingTime = Math.ceil(wordCount/130*60)
+
+words.textContent = wordCount
+characters.textContent = charCount
+charactersNoSpace.textContent = charNoSpace
+sentences.textContent = sentenceCount
+paragraphs.textContent = paragraphCount
+
+reading.textContent = readingTime+" sec"
+speaking.textContent = speakingTime+" sec"
+
+}
+
+async function checkGrammar(){
+
+let value = text.value
+
+if(value.trim()===""){
+alert("Enter text first")
+return
+}
+
+let res = await fetch("https://api.languagetool.org/v2/check",{
+method:"POST",
+headers:{
+"Content-Type":"application/x-www-form-urlencoded"
+},
+body:"text="+encodeURIComponent(value)+"&language=en-US"
+})
+
+let data = await res.json()
+
+let result = document.getElementById("grammarResult")
+
+result.innerHTML=""
+
+if(data.matches.length===0){
+result.innerHTML="✅ No grammar issues found."
+return
+}
+
+data.matches.forEach(m=>{
+
+let div = document.createElement("div")
+
+div.innerHTML=
+"<b>Issue:</b> "+m.message+
+"<br><b>Suggestion:</b> "+(m.replacements[0]?.value||"None")+
+"<hr>"
+
+result.appendChild(div)
+
+})
+
+}
+
+</script>
+
+</body>
+</html>
