@@ -7,6 +7,7 @@ A simple and responsive **Word Counter web app** built using **HTML, CSS, and Ja
 ## 🚀 Features
 
 * ✅ Real-time word count
+* 🔗 Check Grammar
 * 🔤 Character count (with & without spaces)
 * 📄 Sentence counter
 * 🧾 Paragraph counter
